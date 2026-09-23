@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Quête des Six Mondes</title>
+<meta name="description" content="Jeu de questions pour les explorateurs de 7 ans.">
+<meta name="theme-color" content="#131B3A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Six Mondes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#131B3A;
+  --ink-2:#1C2750;
+  --ink-3:#26336A;
+  --brass:#E0A93B;
+  --brass-dim:#9C7526;
+  --paper:#F4EEE1;
+  --paper-dim:#BFB6A4;
+  --nature:#2FA36B;
+  --monde:#3B7DD8;
+  --science:#F0B429;
+  --histoire:#E2703A;
+  --sport:#D64550;
+  --culture:#9A6BD8;
+  --ok:#3FBF7F;
+  --no:#E2596B;
+  --r:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(120% 80% at 50% -10%, #223066 0%, rgba(34,48,102,0) 60%),
+    var(--ink);
+  color:var(--paper);
+  font-family:Nunito,"Segoe UI",system-ui,sans-serif;
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex;
+  justify-content:center;
+  padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom) 14px;
+}
+.app{width:100%;max-width:460px;padding:22px 0 30px;display:flex;flex-direction:column;gap:20px}
+
+/* ---------- typography ---------- */
+h1,h2,.serif{font-family:Fraunces,Georgia,"Times New Roman",serif;font-weight:700;margin:0;letter-spacing:.2px}
+h1{font-size:30px;line-height:1.08}
+h2{font-size:22px;line-height:1.15}
+.lede{font-size:15px;line-height:1.5;color:var(--paper-dim);margin:0}
+.tiny{font-size:13px;color:var(--paper-dim);margin:0}
+h2 + .tiny{margin-top:7px}
+
+/* ---------- screens ---------- */
+.screen{display:none;flex-direction:column;gap:20px}
+.screen.on{display:flex}
+
+/* ---------- home ---------- */
+.crest{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.medal-wrap{position:relative;width:196px;height:196px;display:grid;place-items:center}
+.medal-wrap.sm{width:126px;height:126px;margin:0 auto}
+.medal-wrap.sm .medal-count b{font-size:24px}
+.medal-wrap.sm .medal-count span{font-size:13px}
+.medal-wrap svg{width:100%;height:100%;overflow:visible}
+.medal-count{position:absolute;display:flex;align-items:baseline;gap:2px;line-height:1}
+.medal-count b{font-family:Fraunces,serif;font-size:36px;color:var(--brass)}
+.medal-count span{font-family:Fraunces,serif;font-size:19px;color:var(--paper-dim)}
+.wedge{transition:opacity .45s ease;transform-box:view-box;transform-origin:50% 50%}
+.wedge.off{opacity:.12}
+.wedge.pop{animation:pop .6s ease backwards}
+@keyframes pop{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.stat{background:var(--ink-2);border:1px solid rgba(224,169,59,.22);border-radius:14px;padding:12px 8px;text-align:center}
+.stat b{display:block;font-family:Fraunces,serif;font-size:21px;color:var(--paper)}
+.stat span{font-size:11px;color:var(--paper-dim)}
+
+/* ---------- buttons ---------- */
+button{font-family:inherit;font-size:16px;cursor:pointer;border:0;background:none;color:inherit}
+.btn{
+  display:block;width:100%;padding:17px 18px;border-radius:var(--r);
+  background:linear-gradient(180deg,#F0BE55,#DA9E2C);
+  color:#2A1D05;font-weight:800;font-size:18px;
+  box-shadow:0 4px 0 #9C7526;
+  transition:transform .08s ease, box-shadow .08s ease;
+}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #9C7526}
+.btn.ghost{background:transparent;color:var(--paper);box-shadow:none;border:1.5px solid rgba(244,238,225,.28);font-weight:700;font-size:16px;padding:14px}
+.btn.ghost:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+:focus-visible{outline:3px solid var(--brass);outline-offset:3px}
+
+/* ---------- category grid ---------- */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cat{
+  position:relative;border-radius:var(--r);padding:16px 12px 14px;text-align:left;
+  background:var(--ink-2);border:1.5px solid var(--c);
+  display:flex;flex-direction:column;gap:8px;min-height:104px;
+  transition:transform .08s ease;
+}
+.cat:active{transform:scale(.97)}
+.cat .dot{width:26px;height:26px;border-radius:50%;background:var(--c)}
+.cat .nm{font-weight:800;font-size:15px;line-height:1.2}
+.cat .lv{font-size:11px;color:var(--paper-dim)}
+.cat.done{opacity:.42;pointer-events:none}
+.cat.done::after{content:"✓";position:absolute;top:10px;right:12px;color:var(--c);font-weight:800;font-size:18px}
+
+/* ---------- question ---------- */
+.ribbon{display:flex;align-items:center;gap:10px}
+.ribbon .dot{width:14px;height:14px;border-radius:50%;background:var(--c);flex:none}
+.ribbon .nm{font-weight:800;font-size:14px}
+.ribbon .lv{margin-left:auto;font-size:12px;color:var(--paper-dim)}
+.card{background:var(--ink-2);border:1px solid rgba(244,238,225,.12);border-radius:22px;padding:22px 20px}
+.qtext{font-family:Fraunces,serif;font-size:24px;line-height:1.28;margin:0}
+.think{display:flex;align-items:center;gap:10px;margin-top:18px}
+.think .bar{flex:1;height:8px;border-radius:5px;background:rgba(244,238,225,.14);overflow:hidden}
+.think .fill{height:100%;width:0;background:var(--brass);border-radius:5px;transition:width .25s linear}
+.think .lab{font-size:12px;color:var(--paper-dim);white-space:nowrap}
+.think.ready .lab{color:var(--brass);font-weight:700}
+
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{
+  width:100%;text-align:left;padding:16px 18px;border-radius:16px;
+  background:var(--ink-3);border:1.5px solid rgba(244,238,225,.16);
+  font-size:17px;font-weight:600;line-height:1.3;
+  display:flex;gap:12px;align-items:center;
+  animation:rise .32s ease backwards;
+}
+.opt .key{width:26px;height:26px;border-radius:8px;background:rgba(244,238,225,.14);display:grid;place-items:center;font-weight:800;font-size:14px;flex:none}
+.opt:nth-child(1){animation-delay:.02s}
+.opt:nth-child(2){animation-delay:.10s}
+.opt:nth-child(3){animation-delay:.18s}
+.opt:active{transform:scale(.985)}
+.opt.good{background:rgba(63,191,127,.18);border-color:var(--ok)}
+.opt.bad{background:rgba(226,89,107,.16);border-color:var(--no)}
+.opt.mute{opacity:.45}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.verdict{display:flex;align-items:center;gap:10px;font-family:Fraunces,serif;font-size:21px}
+.verdict.win{color:var(--ok)}
+.verdict.lose{color:var(--no)}
+.why{font-size:15.5px;line-height:1.55;margin:10px 0 0;color:var(--paper)}
+.bonus{margin-top:12px;display:inline-flex;align-items:center;gap:8px;background:rgba(224,169,59,.16);border:1px solid var(--brass);color:var(--brass);font-weight:800;font-size:13px;padding:8px 12px;border-radius:999px}
+
+/* ---------- cabinet ---------- */
+.cab{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.troph{background:var(--ink-2);border:1px solid rgba(224,169,59,.3);border-radius:16px;padding:14px;text-align:center}
+.troph svg{width:54px;height:54px}
+.troph b{display:block;font-family:Fraunces,serif;font-size:14px;margin-top:6px}
+.troph span{font-size:11px;color:var(--paper-dim)}
+.empty{background:var(--ink-2);border:1px dashed rgba(244,238,225,.25);border-radius:16px;padding:26px 18px;text-align:center}
+
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+.center{text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ============ ACCUEIL ============ -->
+<section id="s-home" class="screen on">
+  <div class="crest">
+    <div class="medal-wrap">
+      <svg id="medal" viewBox="0 0 196 196" aria-hidden="true"></svg>
+      <div class="medal-count"><b id="wedgeCount">0</b><span>/ 6</span></div>
+    </div>
+    <h1>La Quête<br>des Six Mondes</h1>
+    <p class="lede">Six mondes à explorer. Une part de trophée par bonne réponse.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b id="stTroph">0</b><span>trophées</span></div>
+    <div class="stat"><b id="stStars">0</b><span>étoiles</span></div>
+    <div class="stat"><b id="stStreak">0</b><span>jours de suite</span></div>
+  </div>
+
+  <button class="btn" id="goPlay">Commencer la quête</button>
+  <button class="btn ghost" id="goCab">Coffre à trophées</button>
+</section>
+
+<!-- ============ CHOIX DE MONDE ============ -->
+<section id="s-pick" class="screen">
+  <div>
+    <h2>Choisis ton monde</h2>
+    <p class="tiny" id="pickSub">Il te reste 6 parts à gagner.</p>
+  </div>
+  <div class="grid" id="catGrid"></div>
+  <button class="btn ghost" id="pickHome">Retour à l’accueil</button>
+</section>
+
+<!-- ============ QUESTION ============ -->
+<section id="s-q" class="screen">
+  <div class="ribbon" id="qRibbon"><span class="dot"></span><span class="nm"></span><span class="lv"></span></div>
+
+  <div class="card">
+    <p class="qtext" id="qText"></p>
+    <div class="think" id="thinkBox">
+      <div class="bar"><div class="fill" id="thinkFill"></div></div>
+      <div class="lab" id="thinkLab">Réfléchis d’abord…</div>
+    </div>
+  </div>
+
+  <button class="btn" id="revealBtn">Montrer les réponses</button>
+
+  <div class="opts" id="opts" hidden></div>
+</section>
+
+<!-- ============ RÉSULTAT ============ -->
+<section id="s-res" class="screen">
+  <div class="medal-wrap sm">
+    <svg id="medalRes" viewBox="0 0 196 196" aria-hidden="true"></svg>
+    <div class="medal-count"><b id="resCount">0</b><span>/ 6</span></div>
+  </div>
+  <div class="card">
+    <div class="verdict" id="verdict"></div>
+    <p class="why" id="why"></p>
+    <div id="bonusWrap"></div>
+  </div>
+  <button class="btn" id="nextBtn">Continuer</button>
+</section>
+
+<!-- ============ TROPHÉE GAGNÉ ============ -->
+<section id="s-win" class="screen">
+  <div class="crest">
+    <div class="medal-wrap"><svg id="medalWin" viewBox="0 0 196 196" aria-hidden="true"></svg></div>
+    <h1 id="winName">Trophée gagné</h1>
+    <p class="lede" id="winSub"></p>
+  </div>
+  <button class="btn" id="winAgain">Nouvelle quête</button>
+  <button class="btn ghost" id="winHome">Retour à l’accueil</button>
+</section>
+
+<!-- ============ COFFRE ============ -->
+<section id="s-cab" class="screen">
+  <h2>Coffre à trophées</h2>
+  <div id="cabBody"></div>
+  <button class="btn ghost" id="cabHome">Retour à l’accueil</button>
+</section>
+
+</div>
+
+<script>
+/* =========================================================
+   Stockage : localStorage si disponible, sinon mémoire.
+   ========================================================= */
+const Mem = {};
+const Store = {
+  get(k, d){
+    try{ const v = localStorage.getItem(k); return v===null ? (k in Mem ? Mem[k] : d) : JSON.parse(v); }
+    catch(e){ return (k in Mem) ? Mem[k] : d; }
+  },
+  set(k, v){
+    Mem[k] = v;
+    try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){}
+  }
+};
+
+/* =========================================================
+   Les six mondes
+   ========================================================= */
+const CATS = [
+  {id:"nature",   nom:"Créatures et Nature",        v:"--nature"},
+  {id:"monde",    nom:"Notre Monde",                v:"--monde"},
+  {id:"science",  nom:"Comment ça marche ?",        v:"--science"},
+  {id:"histoire", nom:"Il y a très longtemps",      v:"--histoire"},
+  {id:"sport",    nom:"Sport et Jeux",              v:"--sport"},
+  {id:"culture",  nom:"Histoires, Mots et Musique", v:"--culture"}
+];
+const NIVEAUX = ["Explorateur","Aventurier","Maître"];
+
+/* =========================================================
+   Les questions : 6 mondes × 3 niveaux × 10
+   q = question, o = options, a = bonne réponse, e = explication
+   ========================================================= */
+const Q = {
+nature:[
+[
+{q:"Quel est le plus grand animal du monde ?",o:["La baleine bleue","L’éléphant","La girafe"],a:0,e:"La baleine bleue peut dépasser 25 mètres de long, plus qu’un terrain de tennis."},
+{q:"Combien de pattes a une araignée ?",o:["Six","Huit","Dix"],a:1,e:"Huit pattes. Les insectes, eux, en ont six : l’araignée n’est donc pas un insecte."},
+{q:"Que mange surtout le panda géant ?",o:["Du poisson","De la viande","Du bambou"],a:2,e:"Le panda passe une grande partie de sa journée à mâcher du bambou."},
+{q:"Quel oiseau ne peut pas voler ?",o:["Le manchot","Le moineau","L’aigle"],a:0,e:"Le manchot ne vole pas dans l’air, mais il nage très vite sous l’eau."},
+{q:"Comment s’appelle le petit de la vache ?",o:["L’agneau","Le veau","Le poulain"],a:1,e:"Le veau. L’agneau est le petit de la brebis et le poulain celui de la jument."},
+{q:"Quelle partie de la plante pousse sous la terre ?",o:["Les feuilles","Les fleurs","Les racines"],a:2,e:"Les racines tiennent la plante en place et boivent l’eau du sol."},
+{q:"Quel animal change de couleur pour se cacher ?",o:["Le caméléon","Le lapin","Le cheval"],a:0,e:"Le caméléon change de couleur pour se cacher, mais aussi selon son humeur."},
+{q:"Quel insecte fabrique le miel ?",o:["La fourmi","Le papillon","L’abeille"],a:2,e:"Les abeilles récoltent le nectar des fleurs et le transforment en miel dans la ruche."},
+{q:"Où vit le poisson clown ?",o:["Dans les rivières","Dans la mer","Dans les lacs"],a:1,e:"Il vit dans la mer chaude, souvent caché au milieu d’une anémone."},
+{q:"Quel animal porte ses petits dans une poche ?",o:["Le kangourou","Le singe","Le renard"],a:0,e:"Le bébé kangourou grandit dans la poche de sa mère pendant plusieurs mois."}
+],
+[
+{q:"Quel est l’animal terrestre le plus rapide ?",o:["Le cheval","Le guépard","Le lion"],a:1,e:"Le guépard atteint environ 100 km/h, mais seulement sur une courte distance."},
+{q:"Comment s’appelle la transformation de la chenille en papillon ?",o:["La migration","L’hibernation","La métamorphose"],a:2,e:"Pendant la métamorphose, la chenille s’enferme dans une chrysalide et se transforme."},
+{q:"Combien de cœurs a une pieuvre ?",o:["Trois","Un","Deux"],a:0,e:"Trois cœurs : deux pour les branchies et un pour le reste du corps."},
+{q:"Quel animal passe l’hiver endormi ?",o:["Le renard","La marmotte","Le loup"],a:1,e:"La marmotte hiberne : son cœur ralentit et elle vit sur ses réserves de graisse."},
+{q:"De quel arbre vient le gland ?",o:["Le sapin","Le bouleau","Le chêne"],a:2,e:"Le gland est le fruit du chêne. Les écureuils en cachent pour l’hiver."},
+{q:"Quel est le plus grand oiseau du monde ?",o:["L’autruche","Le condor","Le pélican"],a:0,e:"L’autruche peut mesurer 2,50 m. Elle ne vole pas, mais elle court très vite."},
+{q:"Combien de bosses a un dromadaire ?",o:["Deux","Une","Trois"],a:1,e:"Une seule. C’est le chameau qui en a deux."},
+{q:"Quel animal marin est un mammifère ?",o:["Le requin","La sardine","Le dauphin"],a:2,e:"Le dauphin respire de l’air avec des poumons et allaite ses petits."},
+{q:"Comment appelle-t-on un animal qui mange seulement des plantes ?",o:["Un herbivore","Un carnivore","Un omnivore"],a:0,e:"Herbivore. Le carnivore mange de la viande, l’omnivore mange un peu de tout."},
+{q:"Que fabriquent les plantes grâce à la lumière du soleil ?",o:["Du sable","Leur nourriture","Du vent"],a:1,e:"C’est la photosynthèse : la plante se nourrit et libère de l’oxygène."}
+],
+[
+{q:"Quel est le plus grand reptile du monde ?",o:["Le python","Le varan de Komodo","Le crocodile marin"],a:2,e:"Le crocodile marin peut dépasser 6 mètres de long."},
+{q:"Combien de temps une éléphante porte-t-elle son bébé ?",o:["Environ 22 mois","Environ 9 mois","Environ 3 mois"],a:0,e:"Près de deux ans : c’est la plus longue gestation de tous les mammifères terrestres."},
+{q:"Quel animal se repère dans le noir grâce à l’écholocation ?",o:["Le hibou","La chauve-souris","Le chat"],a:1,e:"Elle envoie des sons et écoute l’écho pour « voir » les obstacles."},
+{q:"Quel est le plus grand félin du monde ?",o:["Le lion","Le jaguar","Le tigre"],a:2,e:"Le tigre, surtout le tigre de Sibérie, est le plus grand des félins."},
+{q:"Quel oiseau peut voler en arrière ?",o:["Le colibri","L’hirondelle","La mouette"],a:0,e:"Le colibri bat des ailes si vite qu’il peut rester sur place ou reculer."},
+{q:"Quel est l’arbre le plus haut du monde ?",o:["Le chêne","Le séquoia","Le palmier"],a:1,e:"Certains séquoias de Californie dépassent 100 mètres de haut."},
+{q:"Que se passe-t-il quand un lézard perd sa queue ?",o:["Il meurt","Elle devient bleue","Elle repousse"],a:2,e:"Il la laisse tomber pour échapper à un prédateur, puis elle repousse peu à peu."},
+{q:"Comment appelle-t-on les animaux qui ont des écailles et pondent des œufs, comme le serpent ?",o:["Les reptiles","Les amphibiens","Les mammifères"],a:0,e:"Les reptiles. Les amphibiens, comme la grenouille, ont la peau nue et humide."},
+{q:"Où circule la sève qui nourrit un arbre ?",o:["Dans les fleurs","Dans le tronc et les branches","Dans le sol seulement"],a:1,e:"La sève monte des racines jusqu’aux feuilles en passant par le tronc."},
+{q:"Quel animal construit des barrages sur les rivières ?",o:["La loutre","Le rat musqué","Le castor"],a:2,e:"Le castor abat des arbres avec ses dents pour barrer la rivière et bâtir sa hutte."}
+]
+],
+monde:[
+[
+{q:"Quelle est la capitale de la France ?",o:["Paris","Lyon","Marseille"],a:0,e:"Paris est la capitale de la France depuis très longtemps."},
+{q:"Quel monument célèbre se trouve à Paris ?",o:["Big Ben","La tour Eiffel","La statue de la Liberté"],a:1,e:"La tour Eiffel mesure environ 330 mètres avec son antenne."},
+{q:"Sur quelle planète vivons-nous ?",o:["Mars","Jupiter","La Terre"],a:2,e:"La Terre, la seule planète connue où il y a de la vie."},
+{q:"Quel est le plus grand océan du monde ?",o:["L’océan Pacifique","L’océan Atlantique","L’océan Indien"],a:0,e:"Le Pacifique couvre à lui seul près d’un tiers de la surface de la Terre."},
+{q:"Dans quel pays se trouve la ville de Londres ?",o:["En Allemagne","Au Royaume-Uni","En Italie"],a:1,e:"Londres est la capitale du Royaume-Uni."},
+{q:"Quel animal est le symbole de l’Australie ?",o:["Le tigre","L’ours","Le kangourou"],a:2,e:"Le kangourou vit surtout en Australie et nulle part ailleurs à l’état sauvage."},
+{q:"Quelles sont les couleurs du drapeau français ?",o:["Bleu, blanc, rouge","Vert, blanc, rouge","Bleu, jaune, rouge"],a:0,e:"Bleu, blanc, rouge : on l’appelle le drapeau tricolore."},
+{q:"Qu’est-ce qu’une île ?",o:["Une très haute montagne","Une terre entourée d’eau","Un grand fleuve"],a:1,e:"Une île est entourée d’eau de tous les côtés."},
+{q:"Comment appelle-t-on une grande étendue de sable très sec ?",o:["Une forêt","Une vallée","Un désert"],a:2,e:"Dans un désert, il pleut très peu et il fait souvent très chaud le jour."},
+{q:"Quelle est la capitale de l’Espagne ?",o:["Madrid","Barcelone","Séville"],a:0,e:"Madrid se trouve presque au centre du pays."}
+],
+[
+{q:"Quelle est la capitale de l’Italie ?",o:["Milan","Rome","Venise"],a:1,e:"Rome, la ville du Colisée et du Vatican."},
+{q:"Quel est le plus long fleuve de France ?",o:["La Seine","Le Rhône","La Loire"],a:2,e:"La Loire fait environ 1 000 km et se jette dans l’océan Atlantique."},
+{q:"Quelle est la plus haute montagne du monde ?",o:["L’Everest","Le mont Blanc","Le Kilimandjaro"],a:0,e:"L’Everest culmine à près de 8 850 mètres, entre le Népal et la Chine."},
+{q:"Dans quel pays se trouvent les pyramides de Gizeh ?",o:["En Grèce","En Égypte","Au Mexique"],a:1,e:"Elles se dressent près du Caire, en Égypte, depuis plus de 4 500 ans."},
+{q:"Quel pays a la forme d’une botte ?",o:["L’Espagne","La Grèce","L’Italie"],a:2,e:"Sur une carte, l’Italie ressemble à une botte qui donne un coup de pied à la Sicile."},
+{q:"Quel océan sépare l’Europe de l’Amérique ?",o:["L’océan Atlantique","L’océan Pacifique","L’océan Indien"],a:0,e:"On traverse l’Atlantique pour aller d’Europe en Amérique."},
+{q:"Comment s’appelle la ligne imaginaire qui coupe la Terre en deux moitiés ?",o:["Le tropique","L’équateur","Le pôle"],a:1,e:"L’équateur sépare l’hémisphère nord de l’hémisphère sud."},
+{q:"Quel est le plus haut sommet des Alpes ?",o:["Le Cervin","Le mont Rose","Le mont Blanc"],a:2,e:"Le mont Blanc dépasse 4 800 mètres, entre la France et l’Italie."},
+{q:"Quelle est la capitale du Royaume-Uni ?",o:["Londres","Édimbourg","Dublin"],a:0,e:"Londres est traversée par la Tamise."},
+{q:"Quelle mer borde la ville de Dubaï ?",o:["La mer Baltique","Le golfe Persique","La mer Noire"],a:1,e:"Dubaï se trouve au bord du golfe Persique, aussi appelé golfe Arabo-Persique."}
+],
+[
+{q:"Quelle est la capitale de l’Australie ?",o:["Sydney","Melbourne","Canberra"],a:2,e:"Canberra, et non Sydney : elle a été construite exprès pour être la capitale."},
+{q:"Quel est le plus grand pays du monde ?",o:["La Russie","Le Canada","La Chine"],a:0,e:"La Russie est si vaste qu’elle s’étend sur onze fuseaux horaires."},
+{q:"Quel est le plus petit pays du monde ?",o:["Monaco","Le Vatican","Malte"],a:1,e:"Le Vatican tient dans un quartier de Rome et compte quelques centaines d’habitants."},
+{q:"Combien d’étoiles compte le drapeau européen ?",o:["Quinze","Vingt-sept","Douze"],a:2,e:"Douze étoiles en cercle. Le nombre ne change pas avec le nombre de pays."},
+{q:"Quel océan entoure le pôle Nord ?",o:["L’océan Arctique","L’océan Austral","L’océan Indien"],a:0,e:"Au pôle Nord il n’y a pas de terre : seulement la banquise sur l’océan Arctique."},
+{q:"Quelle chaîne de montagnes sépare la France de l’Espagne ?",o:["Les Alpes","Les Pyrénées","Les Vosges"],a:1,e:"Les Pyrénées s’étendent de l’Atlantique à la Méditerranée."},
+{q:"Dans quel pays se trouve la ville de Marrakech ?",o:["En Tunisie","En Algérie","Au Maroc"],a:2,e:"Marrakech est célèbre pour sa grande place et ses remparts rouges."},
+{q:"Quel émirat est le plus grand des Émirats arabes unis ?",o:["Abou Dabi","Dubaï","Charjah"],a:0,e:"Abou Dabi occupe à lui seul la plus grande partie du pays et en est la capitale."},
+{q:"Dans quelle ville se trouve la Sagrada Família ?",o:["Lisbonne","Barcelone","Madrid"],a:1,e:"Cette immense église de Barcelone est en chantier depuis plus de cent ans."},
+{q:"Quelle est la monnaie utilisée en France ?",o:["La livre","Le franc","L’euro"],a:2,e:"L’euro a remplacé le franc au début des années 2000."}
+]
+],
+science:[
+[
+{q:"Quel organe pompe le sang dans tout le corps ?",o:["Le cœur","L’estomac","Le foie"],a:0,e:"Le cœur bat sans s’arrêter, jour et nuit, même quand tu dors."},
+{q:"Quel organe sert à respirer ?",o:["Les reins","Les poumons","Le cerveau"],a:1,e:"Les poumons prennent l’oxygène de l’air et rejettent le gaz carbonique."},
+{q:"Quelle étoile est la plus proche de la Terre ?",o:["La Lune","Mars","Le Soleil"],a:2,e:"Le Soleil est une étoile. La Lune, elle, est un satellite qui tourne autour de la Terre."},
+{q:"Que devient l’eau quand il fait très froid ?",o:["De la glace","De la vapeur","Du sable"],a:0,e:"À 0 degré, l’eau gèle et devient solide."},
+{q:"Combien de dents de lait a un enfant ?",o:["Trente-deux","Vingt","Douze"],a:1,e:"Vingt dents de lait, remplacées ensuite par les dents définitives."},
+{q:"Combien de planètes tournent autour du Soleil ?",o:["Sept","Neuf","Huit"],a:2,e:"Huit planètes, de Mercure à Neptune."},
+{q:"Quel sens utilise-t-on avec le nez ?",o:["L’odorat","Le goût","L’ouïe"],a:0,e:"L’odorat. Il aide aussi à sentir le goût des aliments."},
+{q:"Quel objet indique toujours le Nord ?",o:["Le thermomètre","La boussole","La règle"],a:1,e:"L’aiguille aimantée de la boussole se tourne vers le Nord."},
+{q:"De quoi une plante a-t-elle besoin pour pousser ?",o:["De sel et de vent","De sable et de neige","D’eau et de lumière"],a:2,e:"De l’eau, de la lumière, de l’air et un peu de terre."},
+{q:"Qu’est-ce qui éclaire la Terre pendant la journée ?",o:["Le Soleil","La Lune","Les étoiles"],a:0,e:"La lumière du Soleil met environ huit minutes à nous parvenir."}
+],
+[
+{q:"Quelle planète est surnommée la planète rouge ?",o:["Vénus","Mars","Jupiter"],a:1,e:"Mars paraît rouge à cause de la rouille contenue dans son sol."},
+{q:"Combien de temps met la Terre pour faire le tour du Soleil ?",o:["Un mois","Un jour","Un an"],a:2,e:"Un an, soit environ 365 jours. C’est ce qui crée les saisons."},
+{q:"De quel gaz avons-nous besoin pour vivre ?",o:["L’oxygène","Le gaz carbonique","L’hélium"],a:0,e:"L’oxygène de l’air passe dans le sang par les poumons."},
+{q:"Qu’est-ce qui provoque surtout les marées ?",o:["Le vent","La Lune","Les poissons"],a:1,e:"La Lune attire l’eau des océans, ce qui fait monter et descendre la mer."},
+{q:"Comment s’appelle l’eau qui se transforme en vapeur ?",o:["La condensation","La fusion","L’évaporation"],a:2,e:"L’évaporation. Dans l’autre sens, la vapeur qui redevient liquide se condense."},
+{q:"Quel est l’os le plus long du corps humain ?",o:["Le fémur","Le tibia","L’humérus"],a:0,e:"Le fémur, l’os de la cuisse."},
+{q:"Quelle force nous fait tomber vers le sol ?",o:["Le magnétisme","La gravité","Le vent"],a:1,e:"La gravité attire tous les objets vers le centre de la Terre."},
+{q:"Combien de temps met la Terre pour tourner sur elle-même ?",o:["Douze heures","Trois cent soixante-cinq jours","Vingt-quatre heures"],a:2,e:"Vingt-quatre heures : c’est ce qui fait le jour et la nuit."},
+{q:"Quel est le plus grand organe du corps humain ?",o:["La peau","Le foie","Le cerveau"],a:0,e:"La peau recouvre tout le corps et le protège."},
+{q:"Qu’est-ce qu’un arc-en-ciel ?",o:["Un nuage coloré","La lumière du soleil séparée par les gouttes d’eau","Un pont dans le ciel"],a:1,e:"Chaque goutte de pluie découpe la lumière blanche en plusieurs couleurs."}
+],
+[
+{q:"Quelle est la plus grande planète du système solaire ?",o:["Saturne","Neptune","Jupiter"],a:2,e:"Jupiter est si grande que toutes les autres planètes tiendraient à l’intérieur."},
+{q:"Qui a été le premier homme à marcher sur la Lune ?",o:["Neil Armstrong","Youri Gagarine","Thomas Pesquet"],a:0,e:"Neil Armstrong, en 1969. Gagarine, lui, fut le premier homme dans l’espace."},
+{q:"Combien de temps met la lumière du Soleil pour arriver sur Terre ?",o:["Une seconde","Environ huit minutes","Environ une heure"],a:1,e:"Huit minutes, alors que la lumière parcourt 300 000 km par seconde."},
+{q:"Quel est le symbole chimique de l’eau ?",o:["CO2","O2","H2O"],a:2,e:"H2O : deux atomes d’hydrogène pour un atome d’oxygène."},
+{q:"Pourquoi voit-on l’éclair avant d’entendre le tonnerre ?",o:["Parce que la lumière va plus vite que le son","Parce que le tonnerre part plus tard","Parce que l’éclair est plus fort"],a:0,e:"La lumière est bien plus rapide que le son, qui met 3 secondes pour faire 1 km."},
+{q:"Quel appareil sert à observer les étoiles ?",o:["Le microscope","Le télescope","Le périscope"],a:1,e:"Le télescope rapproche les objets très lointains. Le microscope grossit les très petits."},
+{q:"Quelle planète possède de grands anneaux ?",o:["Mars","Vénus","Saturne"],a:2,e:"Les anneaux de Saturne sont faits de milliards de morceaux de glace et de roche."},
+{q:"Quel matériau conduit le mieux l’électricité ?",o:["Le cuivre","Le bois","Le plastique"],a:0,e:"Le cuivre : c’est pour cela qu’on en fait les fils électriques."},
+{q:"Comment s’appellent les os qui protègent le cœur et les poumons ?",o:["Le crâne","Les côtes","Le bassin"],a:1,e:"Les côtes forment la cage thoracique."},
+{q:"Que se passe-t-il pendant une éclipse de Soleil ?",o:["Le Soleil s’éteint","La Terre passe devant le Soleil","La Lune passe devant le Soleil"],a:2,e:"La Lune se place entre la Terre et le Soleil et fait de l’ombre en plein jour."}
+]
+],
+histoire:[
+[
+{q:"Quels animaux géants ont disparu il y a des millions d’années ?",o:["Les dinosaures","Les éléphants","Les tigres"],a:0,e:"Les dinosaures ont disparu il y a environ 66 millions d’années."},
+{q:"Où vivaient les chevaliers ?",o:["Dans une pyramide","Dans un château fort","Dans une grotte"],a:1,e:"Le château fort servait à la fois de maison et de forteresse."},
+{q:"Comment s’appelle la grande tombe en pierre des pharaons ?",o:["Le temple","Le donjon","La pyramide"],a:2,e:"Les pyramides d’Égypte abritaient le tombeau du pharaon et ses trésors."},
+{q:"Qui dirigeait l’Égypte ancienne ?",o:["Le pharaon","Le président","L’empereur"],a:0,e:"Le pharaon était considéré comme un roi et presque comme un dieu."},
+{q:"En quelle matière étaient les premiers outils des hommes préhistoriques ?",o:["En plastique","En pierre","En fer"],a:1,e:"C’est pour cela qu’on parle de l’âge de la pierre taillée."},
+{q:"Quel peuple ancien a construit le Colisée ?",o:["Les Grecs","Les Égyptiens","Les Romains"],a:2,e:"Le Colisée de Rome pouvait accueillir des dizaines de milliers de spectateurs."},
+{q:"Comment appelle-t-on les dessins préhistoriques peints sur les murs des grottes ?",o:["Des peintures rupestres","Des mosaïques","Des photographies"],a:0,e:"On en trouve par exemple dans la grotte de Lascaux, en France."},
+{q:"Quel bateau utilisaient les Vikings ?",o:["Le sous-marin","Le drakkar","Le paquebot"],a:1,e:"Ce long bateau à voile et à rames pouvait naviguer en mer et sur les fleuves."},
+{q:"Quel objet donnait l’heure grâce au soleil ?",o:["Le réveil","La montre","Le cadran solaire"],a:2,e:"L’ombre d’une tige se déplace sur le cadran au fil de la journée."},
+{q:"Quel animal servait à se déplacer au Moyen Âge ?",o:["Le cheval","Le chameau","Le renne"],a:0,e:"Le cheval servait aux voyages, aux travaux des champs et à la guerre."}
+],
+[
+{q:"Qui était Cléopâtre ?",o:["Une impératrice romaine","Une reine d’Égypte","Une déesse grecque"],a:1,e:"Cléopâtre fut la dernière reine de l’Égypte antique."},
+{q:"Comment s’appelle l’écriture des anciens Égyptiens ?",o:["Les runes","L’alphabet","Les hiéroglyphes"],a:2,e:"Les hiéroglyphes sont de petits dessins qui servent de lettres et de mots."},
+{q:"Qui a atteint l’Amérique en 1492 ?",o:["Christophe Colomb","Marco Polo","Vasco de Gama"],a:0,e:"Il cherchait une route vers les Indes et croyait y être arrivé."},
+{q:"Comment s’appelle le fossé rempli d’eau autour d’un château fort ?",o:["Le donjon","Les douves","Le rempart"],a:1,e:"Les douves empêchaient les assaillants d’approcher des murs."},
+{q:"Quel chef gaulois a combattu Jules César ?",o:["Charlemagne","Clovis","Vercingétorix"],a:2,e:"Vercingétorix a été vaincu à Alésia."},
+{q:"Quelle invention a permis de fabriquer beaucoup de livres rapidement ?",o:["L’imprimerie","Le téléphone","La boussole"],a:0,e:"Avant l’imprimerie, chaque livre était recopié à la main pendant des mois."},
+{q:"Comment s’appelle la grosse tour la plus solide d’un château fort ?",o:["La chapelle","Le donjon","L’écurie"],a:1,e:"Le donjon était le dernier refuge en cas d’attaque."},
+{q:"Qui étaient les gladiateurs ?",o:["Des prêtres égyptiens","Des marins vikings","Des combattants romains"],a:2,e:"Ils s’affrontaient dans les arènes devant le public romain."},
+{q:"Quel roi de France a fait construire le château de Versailles ?",o:["Louis XIV","Napoléon","Charlemagne"],a:0,e:"Louis XIV, appelé le Roi-Soleil, y a installé toute sa cour."},
+{q:"Dans quel pays se trouvait la cité de Rome dans l’Antiquité ?",o:["En Grèce","En Italie","En Espagne"],a:1,e:"Rome est encore aujourd’hui la capitale de l’Italie."}
+],
+[
+{q:"En quelle année a commencé la Révolution française ?",o:["1492","1914","1789"],a:2,e:"En 1789, avec notamment la prise de la Bastille le 14 juillet."},
+{q:"Qui était Jules César ?",o:["Un général romain","Un pharaon égyptien","Un roi grec"],a:0,e:"Général et homme politique, il a conquis la Gaule."},
+{q:"Quelle pierre a permis de déchiffrer les hiéroglyphes ?",o:["La pierre de Louxor","La pierre de Rosette","La pierre du Nil"],a:1,e:"Elle portait le même texte en plusieurs écritures, ce qui a servi de clé."},
+{q:"Quel empereur français a été vaincu à Waterloo ?",o:["Louis XVI","Charlemagne","Napoléon"],a:2,e:"Napoléon Ier y perdit sa dernière bataille, en 1815."},
+{q:"Quel métal a donné son nom à l’âge qui suit l’âge de pierre ?",o:["Le bronze","Le verre","L’or"],a:0,e:"L’âge du bronze, puis l’âge du fer."},
+{q:"Qui était Toutânkhamon ?",o:["Un empereur romain","Un jeune pharaon","Un explorateur"],a:1,e:"Devenu pharaon enfant, il est célèbre pour son tombeau retrouvé presque intact."},
+{q:"Comment appelait-on les habitants de la Gaule ?",o:["Les Saxons","Les Vandales","Les Gaulois"],a:2,e:"Les Gaulois étaient répartis en de nombreux peuples différents."},
+{q:"Quels animaux Hannibal a-t-il emmenés pour traverser les Alpes ?",o:["Des éléphants","Des chameaux","Des ours"],a:0,e:"Il voulait surprendre les Romains en arrivant par les montagnes."},
+{q:"Quelle catastrophe a enseveli la ville de Pompéi ?",o:["Une inondation","L’éruption d’un volcan","Un incendie de forêt"],a:1,e:"Le Vésuve a recouvert la ville de cendres, ce qui l’a conservée presque intacte."},
+{q:"Qui a été couronné empereur en l’an 800 ?",o:["Jules César","Napoléon","Charlemagne"],a:2,e:"Charlemagne fut couronné empereur d’Occident à Rome."}
+]
+],
+sport:[
+[
+{q:"Combien de joueurs compte une équipe de football sur le terrain ?",o:["Onze","Neuf","Treize"],a:0,e:"Onze joueurs, gardien compris."},
+{q:"Avec quoi joue-t-on au tennis ?",o:["Un bâton","Une raquette","Une batte"],a:1,e:"Une raquette et une balle jaune."},
+{q:"Quel sport pratique-t-on dans une piscine ?",o:["L’escrime","Le ski","La natation"],a:2,e:"La natation. Le plongeon et le water-polo se pratiquent aussi en piscine."},
+{q:"De quelle couleur est le maillot du leader du Tour de France ?",o:["Jaune","Vert","Rouge"],a:0,e:"Le maillot jaune se porte par celui qui a mis le moins de temps depuis le départ."},
+{q:"Dans quel sport porte-t-on un kimono ?",o:["Le tennis","Le judo","Le cyclisme"],a:1,e:"Le judo, comme d’autres arts martiaux venus du Japon."},
+{q:"Au basket, où faut-il envoyer le ballon ?",o:["Dans un but","Dans un filet posé au sol","Dans un panier"],a:2,e:"Le panier est placé à 3,05 m du sol chez les adultes."},
+{q:"Quelle pièce des échecs se déplace en L ?",o:["Le cavalier","La tour","Le fou"],a:0,e:"Le cavalier est aussi la seule pièce qui saute par-dessus les autres."},
+{q:"Quelle médaille reçoit le premier aux Jeux olympiques ?",o:["La médaille d’argent","La médaille d’or","La médaille de bronze"],a:1,e:"Or pour le premier, argent pour le deuxième, bronze pour le troisième."},
+{q:"Dans quel jeu essaie-t-on de faire tomber des quilles ?",o:["Le billard","Le golf","Le bowling"],a:2,e:"Il y a dix quilles à renverser avec une boule."},
+{q:"Quel sport se joue avec un ballon rond et surtout avec les pieds ?",o:["Le football","Le handball","Le volley"],a:0,e:"Au football, seul le gardien peut prendre le ballon avec les mains."}
+],
+[
+{q:"Combien de cases compte un échiquier ?",o:["Trente-six","Soixante-quatre","Cent"],a:1,e:"Soixante-quatre cases : huit rangées de huit."},
+{q:"Tous les combien de temps ont lieu les Jeux olympiques d’été ?",o:["Tous les ans","Tous les deux ans","Tous les quatre ans"],a:2,e:"Tous les quatre ans. Les Jeux d’hiver ont lieu aussi tous les quatre ans."},
+{q:"Dans quel pays le football moderne est-il né ?",o:["En Angleterre","En France","Au Brésil"],a:0,e:"Les premières règles ont été écrites en Angleterre au XIXe siècle."},
+{q:"Combien de temps dure un match de football, sans les arrêts de jeu ?",o:["Soixante minutes","Quatre-vingt-dix minutes","Cent vingt minutes"],a:1,e:"Deux mi-temps de quarante-cinq minutes."},
+{q:"Quel sport se joue avec un ballon ovale ?",o:["Le handball","Le volley","Le rugby"],a:2,e:"Le ballon ovale rebondit de façon imprévisible, ce qui fait partie du jeu."},
+{q:"Dans quel jeu dit-on « échec et mat » ?",o:["Les échecs","Les dames","Le tarot"],a:0,e:"« Échec et mat » veut dire que le roi est pris et que la partie est finie."},
+{q:"Quelle est la distance d’un marathon ?",o:["Dix kilomètres","Environ quarante-deux kilomètres","Cent kilomètres"],a:1,e:"42,195 km exactement."},
+{q:"Combien de joueurs compte une équipe de basket sur le terrain ?",o:["Six","Sept","Cinq"],a:2,e:"Cinq joueurs par équipe."},
+{q:"Quel pays a gagné le plus de Coupes du monde de football ?",o:["Le Brésil","L’Allemagne","L’Italie"],a:0,e:"Le Brésil, avec cinq titres."},
+{q:"Comment s’appelle la plus célèbre course cycliste de France ?",o:["Paris-Roubaix","Le Tour de France","Le Giro"],a:1,e:"Le Tour de France dure trois semaines au mois de juillet."}
+],
+[
+{q:"Où se déroulaient les Jeux olympiques de l’Antiquité ?",o:["À Rome","À Athènes","À Olympie, en Grèce"],a:2,e:"C’est de la ville d’Olympie que vient le mot « olympique »."},
+{q:"Combien de pièces chaque joueur a-t-il au début d’une partie d’échecs ?",o:["Seize","Douze","Vingt"],a:0,e:"Huit pions et huit autres pièces."},
+{q:"Que représentent les cinq anneaux olympiques ?",o:["Les cinq sports d’origine","Les continents","Les cinq médailles"],a:1,e:"Les anneaux entrelacés symbolisent les continents réunis."},
+{q:"Dans quelle ville ont eu lieu les Jeux olympiques d’été de 2024 ?",o:["Paris","Tokyo","Londres"],a:0,e:"Paris les avait déjà accueillis en 1900 et en 1924."},
+{q:"Quel maillot porte le meilleur grimpeur du Tour de France ?",o:["Le maillot vert","Le maillot à pois","Le maillot blanc"],a:1,e:"Le maillot à pois rouges récompense le roi de la montagne."},
+{q:"Au rugby, combien de points vaut un essai ?",o:["Trois points","Sept points","Cinq points"],a:2,e:"Cinq points, plus deux si la transformation qui suit est réussie."},
+{q:"Dans quel sport peut-on réussir un « strike » ?",o:["Le bowling","Le golf","Le judo"],a:0,e:"Un strike, c’est renverser les dix quilles du premier coup."},
+{q:"Combien de trous compte un parcours de golf complet ?",o:["Neuf","Dix-huit","Vingt-quatre"],a:1,e:"Dix-huit trous."},
+{q:"Comment s’appelle la compétition entre les meilleurs clubs de football d’Europe ?",o:["La Coupe du monde","Le Ballon d’or","La Ligue des champions"],a:2,e:"Elle se joue chaque année entre clubs, et non entre pays."},
+{q:"Quel pays a remporté la Coupe du monde de football en 2026 ?",o:["L’Espagne","L’Argentine","La France"],a:0,e:"L’Espagne a battu l’Argentine 1-0 en finale, à New York, le 19 juillet 2026."}
+]
+],
+culture:[
+[
+{q:"Qui perd une chaussure de verre à minuit ?",o:["Cendrillon","Blanche-Neige","La Belle au bois dormant"],a:0,e:"Le prince retrouve Cendrillon grâce à cette pantoufle."},
+{q:"Combien de nains accompagnent Blanche-Neige ?",o:["Cinq","Sept","Trois"],a:1,e:"Sept nains, qui l’accueillent dans leur maison de la forêt."},
+{q:"Quel instrument a des touches noires et blanches ?",o:["La guitare","Le tambour","Le piano"],a:2,e:"Le piano compte 88 touches sur un modèle complet."},
+{q:"Que devient le vilain petit canard ?",o:["Un cygne","Un aigle","Un paon"],a:0,e:"Il n’était pas un canard raté, mais un jeune cygne."},
+{q:"Comment s’appelle le pantin dont le nez s’allonge quand il ment ?",o:["Peter Pan","Pinocchio","Aladin"],a:1,e:"Pinocchio, un pantin de bois qui rêve de devenir un vrai garçon."},
+{q:"Combien de lettres compte l’alphabet français ?",o:["Vingt-quatre","Trente","Vingt-six"],a:2,e:"Vingt-six lettres, dont six voyelles."},
+{q:"Dans la fable, qui flatte le corbeau pour lui prendre son fromage ?",o:["Le renard","Le loup","Le chat"],a:0,e:"Le renard complimente le corbeau, qui ouvre le bec et laisse tomber le fromage."},
+{q:"Quel instrument joue-t-on avec un archet ?",o:["La flûte","Le violon","La batterie"],a:1,e:"L’archet frotte les cordes pour les faire vibrer."},
+{q:"Qui vit dans une lampe magique ?",o:["Le dragon","La fée","Le génie"],a:2,e:"Dans l’histoire d’Aladin, le génie exauce des vœux."},
+{q:"Quel est le contraire du mot « grand » ?",o:["Petit","Gros","Long"],a:0,e:"Petit. Deux mots de sens opposé s’appellent des contraires."}
+],
+[
+{q:"Qui a écrit « Le Petit Prince » ?",o:["Jules Verne","Antoine de Saint-Exupéry","Victor Hugo"],a:1,e:"Saint-Exupéry était aussi pilote d’avion."},
+{q:"Comment s’appelle le jeune sorcier créé par J. K. Rowling ?",o:["Frodon","Percy Jackson","Harry Potter"],a:2,e:"Harry Potter étudie la magie à l’école de Poudlard."},
+{q:"Combien de notes compte la gamme do, ré, mi… ?",o:["Sept","Cinq","Huit"],a:0,e:"Do, ré, mi, fa, sol, la, si : sept notes, puis on recommence."},
+{q:"Qui a écrit les fables du corbeau et du renard ?",o:["Charles Perrault","Jean de La Fontaine","Les frères Grimm"],a:1,e:"La Fontaine a écrit des fables où les animaux parlent comme les humains."},
+{q:"Comment appelle-t-on un mot qui a le même sens qu’un autre ?",o:["Un contraire","Un verbe","Un synonyme"],a:2,e:"« Content » et « joyeux » sont des synonymes."},
+{q:"Dans quel livre un petit garçon visite une chocolaterie ?",o:["Charlie et la Chocolaterie","Matilda","Le Livre de la jungle"],a:0,e:"Roald Dahl y raconte la visite de l’usine de Willy Wonka."},
+{q:"Combien de cordes a le plus souvent une guitare ?",o:["Quatre","Six","Douze"],a:1,e:"Six cordes sur une guitare classique."},
+{q:"Qui a écrit « Le Petit Chaperon rouge » en France ?",o:["Jules Verne","Jean de La Fontaine","Charles Perrault"],a:2,e:"Perrault a mis par écrit plusieurs contes très anciens."},
+{q:"Comment appelle-t-on un grand groupe de musiciens dirigé par un chef ?",o:["Un orchestre","Un solo","Un duo"],a:0,e:"Le chef d’orchestre donne le tempo à tous les musiciens."},
+{q:"Dans « Le Livre de la jungle », comment s’appelle l’ours ?",o:["Bagheera","Baloo","Shere Khan"],a:1,e:"Baloo l’ours. Bagheera est la panthère et Shere Khan le tigre."}
+],
+[
+{q:"Qui a écrit « Vingt mille lieues sous les mers » ?",o:["Alexandre Dumas","Victor Hugo","Jules Verne"],a:2,e:"Jules Verne y imagine le sous-marin Nautilus du capitaine Nemo."},
+{q:"Quel héros grec a vaincu le Minotaure ?",o:["Thésée","Hercule","Ulysse"],a:0,e:"Thésée retrouve la sortie du labyrinthe grâce au fil d’Ariane."},
+{q:"Quel grand compositeur est devenu sourd ?",o:["Mozart","Beethoven","Bach"],a:1,e:"Beethoven a continué à composer alors qu’il n’entendait presque plus."},
+{q:"Comment s’appelle un texte écrit en vers, souvent avec des rimes ?",o:["Un roman","Une pièce","Un poème"],a:2,e:"Le poème joue avec le rythme et les sons des mots."},
+{q:"Comment s’appelle le jeune héros des « Trois Mousquetaires » ?",o:["D’Artagnan","Athos","Aramis"],a:0,e:"D’Artagnan rejoint Athos, Porthos et Aramis."},
+{q:"Dans la mythologie grecque, qui est le roi des dieux ?",o:["Apollon","Zeus","Poséidon"],a:1,e:"Zeus règne depuis le mont Olympe et lance la foudre."},
+{q:"Combien de cordes a un violon ?",o:["Six","Deux","Quatre"],a:2,e:"Quatre cordes : sol, ré, la, mi."},
+{q:"Comment s’appelle le long voyage de retour d’Ulysse ?",o:["L’Odyssée","L’Iliade","L’Énéide"],a:0,e:"Il lui faut dix ans pour rentrer à Ithaque."},
+{q:"Comment appelle-t-on un mot qui se lit pareil dans les deux sens, comme « radar » ?",o:["Un synonyme","Un palindrome","Un adjectif"],a:1,e:"« Kayak » et « ressasser » sont aussi des palindromes."},
+{q:"Qui a écrit « Les Misérables » ?",o:["Émile Zola","Molière","Victor Hugo"],a:2,e:"Victor Hugo y raconte l’histoire de Jean Valjean et de Cosette."}
+]
+]
+};
+
+const NOMS_TROPHEE = ["Trophée du Mousse","Trophée du Guetteur","Trophée du Timonier","Trophée du Cartographe","Trophée de l’Éclaireur","Trophée du Navigateur","Trophée du Second","Trophée du Capitaine","Trophée de l’Amiral","Trophée du Grand Explorateur"];
+
+/* =========================================================
+   État
+   ========================================================= */
+let S = {
+  niveaux: Store.get("q6_niveaux", {nature:1,monde:1,science:1,histoire:1,sport:1,culture:1}),
+  suites:  Store.get("q6_suites",  {nature:0,monde:0,science:0,histoire:0,sport:0,culture:0}),
+  vus:     Store.get("q6_vus", {}),
+  etoiles: Store.get("q6_etoiles", 0),
+  trophees:Store.get("q6_trophees", []),
+  serie:   Store.get("q6_serie", {n:0, jour:""}),
+  gagnees: Store.get("q6_gagnees", [])   // parts gagnées dans la quête en cours
+};
+let etoilesQuete = Store.get("q6_etq", 0);
+let courant = null;    // {cat, item, niveau}
+let tReveal = null, tStart = 0, revele = false;
+const SEUIL = 3;   // secondes de réflexion pour obtenir le bonus
+
+function save(){
+  Store.set("q6_niveaux",S.niveaux); Store.set("q6_suites",S.suites);
+  Store.set("q6_vus",S.vus); Store.set("q6_etoiles",S.etoiles);
+  Store.set("q6_trophees",S.trophees); Store.set("q6_serie",S.serie);
+  Store.set("q6_gagnees",S.gagnees); Store.set("q6_etq",etoilesQuete);
+}
+
+function majSerie(){
+  const j = new Date().toISOString().slice(0,10);
+  if(S.serie.jour === j) return;
+  const hier = new Date(Date.now()-86400000).toISOString().slice(0,10);
+  S.serie = {n: (S.serie.jour === hier ? S.serie.n+1 : 1), jour:j};
+  save();
+}
+
+/* =========================================================
+   Médaillon
+   ========================================================= */
+function arc(i){
+  const cx=98, cy=98, r=76, ir=40;
+  const a0=(i*60-90)*Math.PI/180, a1=((i+1)*60-90)*Math.PI/180;
+  const p=(rad,a)=>[cx+rad*Math.cos(a), cy+rad*Math.sin(a)];
+  const [x1,y1]=p(r,a0),[x2,y2]=p(r,a1),[x3,y3]=p(ir,a1),[x4,y4]=p(ir,a0);
+  return `M${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2} L${x3} ${y3} A${ir} ${ir} 0 0 0 ${x4} ${y4} Z`;
+}
+function dessineMedaillon(svg, gagnees, anime){
+  svg.innerHTML = `<circle cx="98" cy="98" r="86" fill="none" stroke="rgba(224,169,59,.35)" stroke-width="2"/>
+    <circle cx="98" cy="98" r="41" fill="#1C2750" stroke="rgba(224,169,59,.4)" stroke-width="1.5"/>` +
+    CATS.map((c,i)=>{
+      const on = gagnees.includes(c.id);
+      const col = getComputedStyle(document.documentElement).getPropertyValue(c.v).trim();
+      const doAn = (anime === true) || (anime === c.id);
+      const an = doAn ? ` pop" style="animation-delay:${(i*0.11).toFixed(2)}s"` : '"';
+      return `<path class="wedge ${on?'':'off'}${an} d="${arc(i)}" fill="${col}" stroke="#131B3A" stroke-width="2.5"/>`;
+    }).join("");
+}
+
+function coupe(taille){
+  return `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 8h20v9a10 10 0 0 1-20 0z" fill="#E0A93B"/><path d="M14 11H9a6 6 0 0 0 6 6M34 11h5a6 6 0 0 1-6 6" fill="none" stroke="#E0A93B" stroke-width="2.4"/><path d="M22 27h4v7h-4z" fill="#E0A93B"/><path d="M16 38h16v3H16z" fill="#E0A93B"/></svg>`;
+}
+
+/* =========================================================
+   Navigation
+   ========================================================= */
+const $ = id => document.getElementById(id);
+function montre(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on", s.id===id));
+  window.scrollTo(0,0);
+}
+
+function majAccueil(){
+  dessineMedaillon($("medal"), S.gagnees);
+  $("wedgeCount").textContent = S.gagnees.length;
+  $("stTroph").textContent = S.trophees.length;
+  $("stStars").textContent = S.etoiles;
+  $("stStreak").textContent = S.serie.n;
+  $("goPlay").textContent = S.gagnees.length ? "Reprendre la quête" : "Commencer la quête";
+}
+
+function majChoix(){
+  const reste = 6 - S.gagnees.length;
+  $("pickSub").textContent = reste===1 ? "Plus qu’une part pour terminer le trophée." : `Il te reste ${reste} parts à gagner.`;
+  $("catGrid").innerHTML = CATS.map(c=>{
+    const fait = S.gagnees.includes(c.id);
+    return `<button class="cat ${fait?'done':''}" style="--c:var(${c.v})" data-cat="${c.id}">
+      <span class="dot"></span>
+      <span class="nm">${c.nom}</span>
+      <span class="lv">${NIVEAUX[S.niveaux[c.id]-1]}</span>
+    </button>`;
+  }).join("");
+  $("catGrid").querySelectorAll(".cat").forEach(b=>b.onclick=()=>lance(b.dataset.cat));
+  montre("s-pick");
+}
+
+/* =========================================================
+   Tirage d’une question
+   ========================================================= */
+function tire(catId){
+  const niv = S.niveaux[catId];
+  const lot = Q[catId][niv-1];
+  const cle = catId+"_"+niv;
+  let vus = S.vus[cle] || [];
+  if(vus.length >= lot.length) vus = [];
+  const libres = lot.map((_,i)=>i).filter(i=>!vus.includes(i));
+  const idx = libres[Math.floor(Math.random()*libres.length)];
+  vus.push(idx); S.vus[cle]=vus; save();
+  return {item: lot[idx], niveau: niv};
+}
+
+function lance(catId){
+  const cat = CATS.find(c=>c.id===catId);
+  const {item, niveau} = tire(catId);
+  courant = {cat, item, niveau};
+  revele = false;
+
+  const rb = $("qRibbon");
+  rb.style.setProperty("--c", `var(${cat.v})`);
+  rb.querySelector(".nm").textContent = cat.nom;
+  rb.querySelector(".lv").textContent = NIVEAUX[niveau-1];
+  $("qText").textContent = item.q;
+
+  $("opts").hidden = true; $("opts").innerHTML = "";
+  $("revealBtn").hidden = false;
+  $("revealBtn").disabled = false;
+  $("revealBtn").textContent = "Montrer les réponses";
+  $("thinkBox").classList.remove("ready");
+  $("thinkFill").style.width = "0%";
+  $("thinkLab").textContent = "Réfléchis d’abord…";
+
+  tStart = Date.now();
+  clearInterval(tReveal);
+  tReveal = setInterval(()=>{
+    const s = (Date.now()-tStart)/1000;
+    $("thinkFill").style.width = Math.min(100, s/SEUIL*100)+"%";
+    if(s>=SEUIL){
+      $("thinkBox").classList.add("ready");
+      $("thinkLab").textContent = "Bonus réflexion prêt ⭐";
+      clearInterval(tReveal);
+    }
+  }, 250);
+
+  montre("s-q");
+}
+
+$("revealBtn").onclick = ()=>{
+  if(revele) return;
+  revele = true;
+  clearInterval(tReveal);
+  const attente = (Date.now()-tStart)/1000;
+  courant.bonus = attente >= SEUIL;
+  $("revealBtn").hidden = true;
+  const box = $("opts");
+  box.innerHTML = courant.item.o.map((t,i)=>
+    `<button class="opt" data-i="${i}"><span class="key">${"ABC"[i]}</span><span>${t}</span></button>`).join("");
+  box.hidden = false;
+  box.querySelectorAll(".opt").forEach(b=>b.onclick=()=>repond(parseInt(b.dataset.i,10), b));
+};
+
+function repond(i, el){
+  const {item, cat} = courant;
+  const juste = i === item.a;
+  const opts = $("opts").querySelectorAll(".opt");
+  opts.forEach((o,k)=>{
+    o.onclick=null;
+    if(k===item.a) o.classList.add("good");
+    else if(k===i) o.classList.add("bad");
+    else o.classList.add("mute");
+  });
+
+  // niveau adaptatif : 2 bonnes d’affilée montent, 2 mauvaises descendent
+  const id = cat.id;
+  if(juste){
+    S.suites[id] = S.suites[id] > 0 ? S.suites[id]+1 : 1;
+    if(S.suites[id] >= 2 && S.niveaux[id] < 3){ S.niveaux[id]++; S.suites[id]=0; }
+  } else {
+    S.suites[id] = S.suites[id] < 0 ? S.suites[id]-1 : -1;
+    if(S.suites[id] <= -2 && S.niveaux[id] > 1){ S.niveaux[id]--; S.suites[id]=0; }
+  }
+
+  let gagne = 0;
+  if(juste){
+    gagne = 1 + (courant.bonus ? 1 : 0);
+    S.etoiles += gagne; etoilesQuete += gagne;
+    if(!S.gagnees.includes(id)) S.gagnees.push(id);
+  }
+  majSerie(); save();
+
+  setTimeout(()=>{
+    dessineMedaillon($("medalRes"), S.gagnees, juste ? id : null);
+    $("resCount").textContent = S.gagnees.length;
+    const v = $("verdict");
+    v.className = "verdict " + (juste ? "win" : "lose");
+    v.textContent = juste ? "Bravo, part gagnée !" : "Pas cette fois.";
+    $("why").textContent = item.e;
+    $("bonusWrap").innerHTML = (juste && courant.bonus)
+      ? `<div class="bonus">⭐ Bonus réflexion : +1 étoile</div>`
+      : (!juste ? `<p class="tiny" style="margin-top:12px">Ce monde reste ouvert : tu pourras réessayer.</p>` : "");
+    $("nextBtn").textContent = (S.gagnees.length===6) ? "Voir ton trophée" : "Continuer";
+    montre("s-res");
+  }, 620);
+}
+
+$("nextBtn").onclick = ()=>{
+  if(S.gagnees.length === 6) gagneTrophee();
+  else majChoix();
+};
+
+function gagneTrophee(){
+  const nom = NOMS_TROPHEE[Math.min(S.trophees.length, NOMS_TROPHEE.length-1)];
+  S.trophees.push({nom, date: new Date().toLocaleDateString("fr-FR"), etoiles: etoilesQuete});
+  S.gagnees = []; etoilesQuete = 0;
+  save();
+  dessineMedaillon($("medalWin"), CATS.map(c=>c.id), true);
+  $("winName").textContent = nom;
+  $("winSub").textContent = `Les six mondes sont explorés. Tu as ${S.trophees.length} trophée${S.trophees.length>1?"s":""} dans ton coffre.`;
+  montre("s-win");
+}
+
+function majCoffre(){
+  const b = $("cabBody");
+  if(!S.trophees.length){
+    b.innerHTML = `<div class="empty"><p class="lede">Ton coffre est vide. Gagne les six parts d’un trophée pour le remplir.</p></div>`;
+  } else {
+    b.innerHTML = `<div class="cab">` + S.trophees.slice().reverse().map(t=>
+      `<div class="troph">${coupe()}<b>${t.nom}</b><span>${t.date} · ${t.etoiles} ⭐</span></div>`).join("") + `</div>`;
+  }
+  montre("s-cab");
+}
+
+/* ---------- boutons ---------- */
+$("goPlay").onclick = majChoix;
+$("goCab").onclick = majCoffre;
+$("pickHome").onclick = ()=>{ majAccueil(); montre("s-home"); };
+$("cabHome").onclick  = ()=>{ majAccueil(); montre("s-home"); };
+$("winAgain").onclick = majChoix;
+$("winHome").onclick  = ()=>{ majAccueil(); montre("s-home"); };
+
+/* ---------- clavier : A / B / C ---------- */
+document.addEventListener("keydown", e=>{
+  if(!document.getElementById("s-q").classList.contains("on")) return;
+  const k = e.key.toLowerCase();
+  if(!revele && (k===" "||k==="enter")){ e.preventDefault(); $("revealBtn").click(); return; }
+  if(revele && ["a","b","c"].includes(k)){
+    const b = $("opts").querySelectorAll(".opt")["abc".indexOf(k)];
+    if(b) b.click();
+  }
+});
+
+/* ---------- fonctionnement hors ligne ---------- */
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
+  });
+}
+
+majAccueil();
+</script>
+</body>
+</html>
